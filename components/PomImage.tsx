@@ -1,5 +1,5 @@
-import { Image, ImageSourcePropType } from 'react-native'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { useEffect, useRef } from 'react'
+import { Image, ImageSourcePropType, Animated as RNAnimated } from 'react-native'
 
 export type PomMood = 'hopeful' | 'sad' | 'dramatic' | 'happy'
 
@@ -16,12 +16,19 @@ interface PomImageProps {
 }
 
 export function PomImage({ mood, size = 250 }: PomImageProps) {
+  const opacity = useRef(new RNAnimated.Value(1)).current
+
+  useEffect(() => {
+    opacity.setValue(0)
+    RNAnimated.timing(opacity, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start()
+  }, [mood])
+
   return (
-    <Animated.View
-      key={mood}
-      entering={FadeIn.duration(400)}
-      exiting={FadeOut.duration(200)}
-    >
+    <RNAnimated.View style={{ opacity }}>
       <Image
         source={POM_IMAGES[mood]}
         style={{
@@ -33,6 +40,6 @@ export function PomImage({ mood, size = 250 }: PomImageProps) {
         }}
         resizeMode="cover"
       />
-    </Animated.View>
+    </RNAnimated.View>
   )
 }

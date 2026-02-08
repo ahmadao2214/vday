@@ -1,15 +1,5 @@
-import { useEffect, useState } from 'react'
-import { StyleSheet, View } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  withSequence,
-  Easing,
-  FadeIn,
-  FadeOut,
-} from 'react-native-reanimated'
+import { useEffect, useState, useRef } from 'react'
+import { StyleSheet, View, Animated as RNAnimated } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Text } from 'tamagui'
 import { LOADING_MESSAGES } from '../constants/lines'
@@ -17,31 +7,50 @@ import { LOADING_MESSAGES } from '../constants/lines'
 export default function LoadingScreen() {
   const router = useRouter()
   const [messageIndex, setMessageIndex] = useState(0)
-  const progress = useSharedValue(0)
-  const pomScale = useSharedValue(1)
+  const progressAnim = useRef(new RNAnimated.Value(0)).current
+  const pomScale = useRef(new RNAnimated.Value(1)).current
+  const messageOpacity = useRef(new RNAnimated.Value(1)).current
 
   useEffect(() => {
-    // Pom bounce animation
-    pomScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    )
+    // Pom bounce
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(pomScale, {
+          toValue: 1.08,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(pomScale, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start()
 
     // Progress bar
-    progress.value = withTiming(1, {
+    RNAnimated.timing(progressAnim, {
+      toValue: 1,
       duration: 4000,
-      easing: Easing.inOut(Easing.ease),
-    })
+      useNativeDriver: false,
+    }).start()
 
-    // Cycle through messages
+    // Cycle messages
     const messageInterval = setInterval(() => {
-      setMessageIndex((prev) => {
-        if (prev >= LOADING_MESSAGES.length - 1) return prev
-        return prev + 1
+      RNAnimated.timing(messageOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        setMessageIndex((prev) => {
+          if (prev >= LOADING_MESSAGES.length - 1) return prev
+          return prev + 1
+        })
+        RNAnimated.timing(messageOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }).start()
       })
     }, 800)
 
@@ -56,24 +65,21 @@ export default function LoadingScreen() {
     }
   }, [])
 
-  const progressStyle = useAnimatedStyle(() => ({
-    width: `${progress.value * 100}%` as any,
-  }))
-
-  const pomStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pomScale.value }],
-  }))
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  })
 
   return (
     <View style={styles.container}>
-      <Animated.View style={pomStyle}>
+      <RNAnimated.View style={{ transform: [{ scale: pomScale }] }}>
         <Text fontSize={80} textAlign="center">
           🐕
         </Text>
-      </Animated.View>
+      </RNAnimated.View>
 
       <View style={styles.messageContainer}>
-        <Animated.View key={messageIndex} entering={FadeIn.duration(300)} exiting={FadeOut.duration(200)}>
+        <RNAnimated.View style={{ opacity: messageOpacity }}>
           <Text
             fontSize={18}
             fontWeight="600"
@@ -82,11 +88,11 @@ export default function LoadingScreen() {
           >
             {LOADING_MESSAGES[messageIndex]}
           </Text>
-        </Animated.View>
+        </RNAnimated.View>
       </View>
 
       <View style={styles.progressContainer}>
-        <Animated.View style={[styles.progressBar, progressStyle]} />
+        <RNAnimated.View style={[styles.progressBar, { width: progressWidth }]} />
       </View>
 
       <Text fontSize={12} color="#FB7185" marginTop={12}>

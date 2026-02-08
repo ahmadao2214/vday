@@ -1,7 +1,5 @@
-import { createTamagui } from 'tamagui'
+import { createTamagui, createTokens } from 'tamagui'
 import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { tokens as defaultTokens, themes as defaultThemes } from '@tamagui/config/v3'
 
 const headingFont = createInterFont({
   size: {
@@ -33,10 +31,54 @@ const bodyFont = createInterFont(
   { sizeLineHeight: (size) => Math.round(size * 1.1 + 10) }
 )
 
-const valentineTokens = {
-  ...defaultTokens,
+const tokens = createTokens({
+  size: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    7: 28,
+    8: 32,
+    9: 36,
+    10: 40,
+    true: 16,
+  },
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    7: 28,
+    8: 32,
+    9: 36,
+    10: 40,
+    true: 16,
+  },
+  radius: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    true: 8,
+  },
+  zIndex: {
+    0: 0,
+    1: 100,
+    2: 200,
+    3: 300,
+    4: 400,
+    5: 500,
+  },
   color: {
-    ...defaultTokens.color,
     background: '#FFF0F3',
     primary: '#E11D48',
     primaryLight: '#FB7185',
@@ -48,7 +90,7 @@ const valentineTokens = {
     textDark: '#881337',
     textLight: '#FFFFFF',
   },
-}
+})
 
 const config = createTamagui({
   defaultFont: 'body',
@@ -56,9 +98,8 @@ const config = createTamagui({
     heading: headingFont,
     body: bodyFont,
   },
-  tokens: valentineTokens,
+  tokens,
   themes: {
-    ...defaultThemes,
     valentine: {
       background: '#FFF0F3',
       color: '#881337',
@@ -67,7 +108,6 @@ const config = createTamagui({
       accent: '#FDA4AF',
     },
   },
-  shorthands,
 })
 
 export type AppConfig = typeof config

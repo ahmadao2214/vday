@@ -1,6 +1,5 @@
-import { useReducer } from 'react'
-import { StyleSheet, View } from 'react-native'
-import Animated, { FadeIn, FadeInUp, SlideInUp } from 'react-native-reanimated'
+import { useReducer, useEffect, useRef } from 'react'
+import { StyleSheet, View, Animated as RNAnimated } from 'react-native'
 import { Text } from 'tamagui'
 import { PomImage, PomMood } from '../components/PomImage'
 import { SpeechBubble } from '../components/SpeechBubble'
@@ -47,6 +46,36 @@ function getPomMood(state: State): PomMood {
   }
 }
 
+function FadeInView({ delay = 0, children }: { delay?: number; children: React.ReactNode }) {
+  const opacity = useRef(new RNAnimated.Value(0)).current
+  const translateY = useRef(new RNAnimated.Value(20)).current
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      RNAnimated.parallel([
+        RNAnimated.timing(opacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        RNAnimated.spring(translateY, {
+          toValue: 0,
+          damping: 12,
+          stiffness: 100,
+          useNativeDriver: true,
+        }),
+      ]).start()
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <RNAnimated.View style={{ opacity, transform: [{ translateY }] }}>
+      {children}
+    </RNAnimated.View>
+  )
+}
+
 export default function ProposalScreen() {
   const [state, dispatch] = useReducer(reducer, {
     phase: 'asking',
@@ -63,10 +92,12 @@ export default function ProposalScreen() {
     return (
       <View style={styles.container}>
         <Confetti />
-        <Animated.View entering={FadeIn.duration(800)} style={styles.victoryContent}>
-          <PomImage mood="happy" size={220} />
+        <View style={styles.victoryContent}>
+          <FadeInView>
+            <PomImage mood="happy" size={220} />
+          </FadeInView>
 
-          <Animated.View entering={FadeInUp.delay(400).duration(600)}>
+          <FadeInView delay={400}>
             <Text
               fontSize={32}
               fontWeight="800"
@@ -76,9 +107,9 @@ export default function ProposalScreen() {
             >
               YAY! 🎉
             </Text>
-          </Animated.View>
+          </FadeInView>
 
-          <Animated.View entering={FadeInUp.delay(800).duration(600)}>
+          <FadeInView delay={800}>
             <Text
               fontSize={18}
               color="#881337"
@@ -90,9 +121,9 @@ export default function ProposalScreen() {
               I knew you'd say yes!{'\n'}
               Happy Valentine's Day! 💕
             </Text>
-          </Animated.View>
+          </FadeInView>
 
-          <Animated.View entering={FadeInUp.delay(1200).duration(600)}>
+          <FadeInView delay={1200}>
             <Text
               fontSize={14}
               color="#FB7185"
@@ -102,22 +133,24 @@ export default function ProposalScreen() {
             >
               — Your favorite Pom 🐾
             </Text>
-          </Animated.View>
-        </Animated.View>
+          </FadeInView>
+        </View>
       </View>
     )
   }
 
   return (
     <View style={styles.container}>
-      <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
+      <View style={styles.content}>
         {/* Pom Image */}
-        <View style={styles.pomContainer}>
-          <PomImage mood={mood} />
-        </View>
+        <FadeInView>
+          <View style={styles.pomContainer}>
+            <PomImage mood={mood} />
+          </View>
+        </FadeInView>
 
         {/* Question */}
-        <Animated.View entering={SlideInUp.delay(200).springify()}>
+        <FadeInView delay={200}>
           <Text
             fontSize={28}
             fontWeight="800"
@@ -127,7 +160,7 @@ export default function ProposalScreen() {
           >
             Will you be my Valentine?
           </Text>
-        </Animated.View>
+        </FadeInView>
 
         {/* Speech Bubble */}
         <View style={styles.speechContainer}>
@@ -150,7 +183,7 @@ export default function ProposalScreen() {
         <View style={styles.counterContainer}>
           <FailCounter count={state.failCount} />
         </View>
-      </Animated.View>
+      </View>
     </View>
   )
 }

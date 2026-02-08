@@ -1,18 +1,9 @@
-import { useCallback } from 'react'
-import { Dimensions, StyleSheet } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { useCallback, useRef } from 'react'
+import { Dimensions, Pressable, StyleSheet, Animated as RNAnimated } from 'react-native'
 import * as Haptics from 'expo-haptics'
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window')
+const { width: SCREEN_W } = Dimensions.get('window')
 const BUTTON_W = 120
-const BUTTON_H = 50
 const PADDING = 20
 
 interface NoButtonProps {
@@ -21,28 +12,29 @@ interface NoButtonProps {
 }
 
 export function NoButton({ failCount, onAttempt }: NoButtonProps) {
-  const translateX = useSharedValue(0)
-  const translateY = useSharedValue(0)
+  const translateX = useRef(new RNAnimated.Value(0)).current
+  const translateY = useRef(new RNAnimated.Value(0)).current
+  const currentX = useRef(0)
+  const currentY = useRef(0)
 
   const maxAttempts = 9
   const scale = Math.max(1 - failCount * 0.12, 0.2)
   const opacity = failCount >= maxAttempts ? 0 : Math.max(1 - failCount * 0.08, 0.3)
 
   const dodge = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    } catch {}
     onAttempt()
 
     const angle = Math.random() * Math.PI * 2
     const distance = 120 + Math.random() * 100
 
-    let newX = translateX.value + Math.cos(angle) * distance
-    let newY = translateY.value + Math.sin(angle) * distance
+    let newX = currentX.current + Math.cos(angle) * distance
+    let newY = currentY.current + Math.sin(angle) * distance
 
-    // Clamp to screen bounds
     const halfW = (BUTTON_W * scale) / 2
-    const halfH = (BUTTON_H * scale) / 2
     const centerX = SCREEN_W / 2
-    const centerY = SCREEN_H * 0.7 // buttons are in bottom portion
 
     const minX = -(centerX - halfW - PADDING)
     const maxX = centerX - halfW - PADDING
@@ -52,47 +44,52 @@ export function NoButton({ failCount, onAttempt }: NoButtonProps) {
     newX = Math.max(minX, Math.min(maxX, newX))
     newY = Math.max(minY, Math.min(maxY, newY))
 
-    translateX.value = withSpring(newX, {
+    currentX.current = newX
+    currentY.current = newY
+
+    RNAnimated.spring(translateX, {
+      toValue: newX,
       damping: 8,
       stiffness: 150,
       mass: 0.5,
-    })
-    translateY.value = withSpring(newY, {
+      useNativeDriver: true,
+    }).start()
+
+    RNAnimated.spring(translateY, {
+      toValue: newY,
       damping: 8,
       stiffness: 150,
       mass: 0.5,
-    })
+      useNativeDriver: true,
+    }).start()
   }, [failCount, onAttempt, scale])
-
-  const tap = Gesture.Tap().onStart(() => {
-    runOnJS(dodge)()
-  })
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: withTiming(scale, { duration: 300 }) },
-    ],
-    opacity: withTiming(opacity, { duration: 300 }),
-  }))
 
   if (failCount >= maxAttempts) return null
 
   return (
-    <GestureDetector gesture={tap}>
-      <Animated.View style={[styles.button, animatedStyle]}>
-        <Animated.Text style={styles.text}>No</Animated.Text>
-      </Animated.View>
-    </GestureDetector>
+    <RNAnimated.View
+      style={[
+        styles.button,
+        {
+          opacity,
+          transform: [
+            { translateX },
+            { translateY },
+            { scale },
+          ],
+        },
+      ]}
+    >
+      <Pressable onPress={dodge} style={styles.pressable}>
+        <RNAnimated.Text style={styles.text}>No</RNAnimated.Text>
+      </Pressable>
+    </RNAnimated.View>
   )
 }
 
 const styles = StyleSheet.create({
   button: {
     backgroundColor: '#9CA3AF',
-    paddingHorizontal: 36,
-    paddingVertical: 14,
     borderRadius: 30,
     minWidth: BUTTON_W,
     alignItems: 'center',
@@ -101,6 +98,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  pressable: {
+    paddingHorizontal: 36,
+    paddingVertical: 14,
+    alignItems: 'center',
+    width: '100%',
   },
   text: {
     color: '#FFFFFF',

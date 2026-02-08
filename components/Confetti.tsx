@@ -1,15 +1,7 @@
-import { useEffect } from 'react'
-import { Dimensions, StyleSheet } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-} from 'react-native-reanimated'
+import { useEffect, useRef, useMemo } from 'react'
+import { Dimensions, StyleSheet, Animated as RNAnimated, View } from 'react-native'
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window')
-
 const HEARTS = ['💕', '❤️', '💖', '💗', '🩷', '🐾', '✨', '💝']
 const NUM_PARTICLES = 30
 
@@ -23,75 +15,87 @@ interface ParticleProps {
 }
 
 function Particle({ emoji, delay, startX, duration, size, endRotation }: ParticleProps) {
-  const translateY = useSharedValue(-60)
-  const opacity = useSharedValue(0)
-  const rotate = useSharedValue(0)
+  const translateY = useRef(new RNAnimated.Value(-60)).current
+  const opacity = useRef(new RNAnimated.Value(0)).current
+  const rotate = useRef(new RNAnimated.Value(0)).current
 
   useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(1, { duration: 200 }))
-    translateY.value = withDelay(
-      delay,
-      withTiming(SCREEN_H + 60, {
-        duration,
-        easing: Easing.linear,
-      })
-    )
-    rotate.value = withDelay(
-      delay,
-      withTiming(endRotation, {
-        duration,
-        easing: Easing.linear,
-      })
-    )
+    const timer = setTimeout(() => {
+      RNAnimated.timing(opacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start()
 
-    // Fade out near the end
-    const fadeDelay = delay + duration * 0.7
-    opacity.value = withDelay(delay, withTiming(1, { duration: 200 }, () => {
-      opacity.value = withDelay(duration * 0.6, withTiming(0, { duration: duration * 0.3 }))
-    }))
+      RNAnimated.timing(translateY, {
+        toValue: SCREEN_H + 60,
+        duration,
+        useNativeDriver: true,
+      }).start()
+
+      RNAnimated.timing(rotate, {
+        toValue: endRotation,
+        duration,
+        useNativeDriver: true,
+      }).start()
+
+      // Fade out
+      setTimeout(() => {
+        RNAnimated.timing(opacity, {
+          toValue: 0,
+          duration: duration * 0.3,
+          useNativeDriver: true,
+        }).start()
+      }, duration * 0.6)
+    }, delay)
+
+    return () => clearTimeout(timer)
   }, [])
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { rotate: `${rotate.value}deg` },
-    ],
-    opacity: opacity.value,
-  }))
+  const rotateStr = rotate.interpolate({
+    inputRange: [-720, 720],
+    outputRange: ['-720deg', '720deg'],
+  })
 
   return (
-    <Animated.Text
-      style={[
-        {
-          position: 'absolute',
-          left: startX,
-          top: 0,
-          fontSize: size,
-        },
-        animatedStyle,
-      ]}
+    <RNAnimated.Text
+      style={{
+        position: 'absolute',
+        left: startX,
+        top: 0,
+        fontSize: size,
+        opacity,
+        transform: [
+          { translateY },
+          { rotate: rotateStr },
+        ],
+      }}
     >
       {emoji}
-    </Animated.Text>
+    </RNAnimated.Text>
   )
 }
 
 export function Confetti() {
-  const particles = Array.from({ length: NUM_PARTICLES }, (_, i) => ({
-    id: i,
-    emoji: HEARTS[i % HEARTS.length],
-    delay: Math.random() * 2000,
-    startX: Math.random() * SCREEN_W,
-    duration: 3000 + Math.random() * 3000,
-    size: 16 + Math.random() * 20,
-    endRotation: (Math.random() - 0.5) * 720,
-  }))
+  const particles = useMemo(
+    () =>
+      Array.from({ length: NUM_PARTICLES }, (_, i) => ({
+        id: i,
+        emoji: HEARTS[i % HEARTS.length],
+        delay: Math.random() * 2000,
+        startX: Math.random() * SCREEN_W,
+        duration: 3000 + Math.random() * 3000,
+        size: 16 + Math.random() * 20,
+        endRotation: (Math.random() - 0.5) * 720,
+      })),
+    []
+  )
 
   return (
-    <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {particles.map((p) => (
         <Particle key={p.id} {...p} />
       ))}
-    </Animated.View>
+    </View>
   )
 }

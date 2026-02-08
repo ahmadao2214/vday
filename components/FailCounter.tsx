@@ -1,5 +1,4 @@
 import { StyleSheet, View } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
 import { Text } from 'tamagui'
 
 interface FailCounterProps {
@@ -10,11 +9,11 @@ export function FailCounter({ count }: FailCounterProps) {
   if (count === 0) return null
 
   return (
-    <Animated.View entering={FadeIn} style={styles.container}>
+    <View style={styles.container}>
       <Text fontSize={13} color="#FB7185" fontWeight="500">
         Times tried to say No: {count} | Times succeeded: 0
       </Text>
-    </Animated.View>
+    </View>
   )
 }
 

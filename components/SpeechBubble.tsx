@@ -1,5 +1,5 @@
-import { StyleSheet, View } from 'react-native'
-import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated'
+import { useEffect, useRef } from 'react'
+import { StyleSheet, View, Animated as RNAnimated } from 'react-native'
 import { Text } from 'tamagui'
 
 interface SpeechBubbleProps {
@@ -8,12 +8,38 @@ interface SpeechBubbleProps {
 }
 
 export function SpeechBubble({ text, visible }: SpeechBubbleProps) {
+  const scaleAnim = useRef(new RNAnimated.Value(0)).current
+  const opacityAnim = useRef(new RNAnimated.Value(0)).current
+
+  useEffect(() => {
+    if (visible) {
+      RNAnimated.parallel([
+        RNAnimated.spring(scaleAnim, {
+          toValue: 1,
+          damping: 12,
+          stiffness: 200,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start()
+    }
+  }, [visible, text])
+
   if (!visible) return null
 
   return (
-    <Animated.View
-      entering={SlideInDown.springify().damping(12)}
-      style={styles.container}
+    <RNAnimated.View
+      style={[
+        styles.container,
+        {
+          opacity: opacityAnim,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
     >
       <View style={styles.bubble}>
         <Text
@@ -26,7 +52,7 @@ export function SpeechBubble({ text, visible }: SpeechBubbleProps) {
         </Text>
       </View>
       <View style={styles.tail} />
-    </Animated.View>
+    </RNAnimated.View>
   )
 }
 

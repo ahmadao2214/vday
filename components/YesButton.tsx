@@ -1,8 +1,5 @@
-import { Pressable, StyleSheet } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated'
+import { useEffect, useRef } from 'react'
+import { Pressable, StyleSheet, Animated as RNAnimated } from 'react-native'
 import * as Haptics from 'expo-haptics'
 
 interface YesButtonProps {
@@ -11,27 +8,27 @@ interface YesButtonProps {
 }
 
 export function YesButton({ failCount, onPress }: YesButtonProps) {
-  // Grows as fail count increases
+  const scaleAnim = useRef(new RNAnimated.Value(1)).current
   const targetScale = Math.min(1 + failCount * 0.08, 1.8)
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(targetScale, {
-          damping: 12,
-          stiffness: 100,
-        }),
-      },
-    ],
-  }))
+  useEffect(() => {
+    RNAnimated.spring(scaleAnim, {
+      toValue: targetScale,
+      damping: 12,
+      stiffness: 100,
+      useNativeDriver: true,
+    }).start()
+  }, [targetScale])
 
   const handlePress = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch {}
     onPress()
   }
 
   return (
-    <Animated.View style={animatedStyle}>
+    <RNAnimated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
         onPress={handlePress}
         style={({ pressed }) => [
@@ -39,9 +36,9 @@ export function YesButton({ failCount, onPress }: YesButtonProps) {
           pressed && styles.pressed,
         ]}
       >
-        <Animated.Text style={styles.text}>Yes! 💕</Animated.Text>
+        <RNAnimated.Text style={styles.text}>Yes! 💕</RNAnimated.Text>
       </Pressable>
-    </Animated.View>
+    </RNAnimated.View>
   )
 }
 
@@ -61,7 +58,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     backgroundColor: '#BE123C',
-    transform: [{ scale: 0.95 }],
   },
   text: {
     color: '#FFFFFF',
