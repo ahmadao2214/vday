@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Image, ImageSourcePropType, Animated as RNAnimated } from 'react-native'
+import { Image, ImageSourcePropType, View, Animated as RNAnimated } from 'react-native'
 
 export type PomMood = 'hopeful' | 'sad' | 'dramatic' | 'happy'
 
@@ -29,17 +29,26 @@ export function PomImage({ mood, size = 250 }: PomImageProps) {
 
   return (
     <RNAnimated.View style={{ opacity }}>
-      <Image
-        source={POM_IMAGES[mood]}
+      <View
         style={{
           width: size,
           height: size,
           borderRadius: size / 2,
           borderWidth: 4,
           borderColor: '#FDA4AF',
+          overflow: 'hidden',
+          backgroundColor: '#FFF0F3',
         }}
-        resizeMode="cover"
-      />
+      >
+        <Image
+          source={POM_IMAGES[mood]}
+          style={{
+            width: '100%',
+            height: '100%',
+          }}
+          resizeMode="cover"
+        />
+      </View>
     </RNAnimated.View>
   )
 }

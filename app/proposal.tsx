@@ -119,7 +119,8 @@ export default function ProposalScreen() {
               lineHeight={26}
             >
               I knew you'd say yes!{'\n'}
-              Happy Valentine's Day! 💕
+              Happy Valentine's Day Amna! 💕 {'\n'}
+              I love you so much!
             </Text>
           </FadeInView>
 
@@ -131,7 +132,7 @@ export default function ProposalScreen() {
               marginTop={24}
               fontStyle="italic"
             >
-              — Your favorite Pom 🐾
+              — Azhar 🐾
             </Text>
           </FadeInView>
         </View>
@@ -149,6 +150,11 @@ export default function ProposalScreen() {
           </View>
         </FadeInView>
 
+        {/* Speech Bubble (from the Pom) */}
+        <View style={styles.speechContainer}>
+          <SpeechBubble text={speechLine} visible={state.failCount > 0} />
+        </View>
+
         {/* Question */}
         <FadeInView delay={200}>
           <Text
@@ -156,16 +162,11 @@ export default function ProposalScreen() {
             fontWeight="800"
             color="#E11D48"
             textAlign="center"
-            marginTop={20}
+            marginTop={state.failCount > 0 ? 8 : 20}
           >
-            Will you be my Valentine?
+            Will you be my Valentine Amna?
           </Text>
         </FadeInView>
-
-        {/* Speech Bubble */}
-        <View style={styles.speechContainer}>
-          <SpeechBubble text={speechLine} visible={state.failCount > 0} />
-        </View>
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
@@ -206,6 +207,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   pomContainer: {
+    borderRadius: 999,
     shadowColor: '#E11D48',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
@@ -213,9 +215,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   speechContainer: {
-    height: 80,
+    minHeight: 0,
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -224,6 +226,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   counterContainer: {
-    marginTop: 24,
+    marginTop: 16,
   },
 })

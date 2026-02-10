@@ -11,7 +11,7 @@ export function FailCounter({ count }: FailCounterProps) {
   return (
     <View style={styles.container}>
       <Text fontSize={13} color="#FB7185" fontWeight="500">
-        Times tried to say No: {count} | Times succeeded: 0
+        Attempts to say No: {count} 🙄
       </Text>
     </View>
   )

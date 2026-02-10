@@ -41,6 +41,7 @@ export function SpeechBubble({ text, visible }: SpeechBubbleProps) {
         },
       ]}
     >
+      <View style={styles.tailUp} />
       <View style={styles.bubble}>
         <Text
           fontSize={16}
@@ -51,7 +52,6 @@ export function SpeechBubble({ text, visible }: SpeechBubbleProps) {
           {text}
         </Text>
       </View>
-      <View style={styles.tail} />
     </RNAnimated.View>
   )
 }
@@ -59,7 +59,18 @@ export function SpeechBubble({ text, visible }: SpeechBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
+  },
+  tailUp: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#FDA4AF',
+    marginBottom: -1,
   },
   bubble: {
     backgroundColor: '#FFFFFF',
@@ -74,16 +85,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-  },
-  tail: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 10,
-    borderRightWidth: 10,
-    borderTopWidth: 12,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#FDA4AF',
-    marginTop: -1,
   },
 })

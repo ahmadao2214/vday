@@ -38,8 +38,8 @@ export function NoButton({ failCount, onAttempt }: NoButtonProps) {
 
     const minX = -(centerX - halfW - PADDING)
     const maxX = centerX - halfW - PADDING
-    const minY = -150
-    const maxY = 150
+    const minY = 0
+    const maxY = 200
 
     newX = Math.max(minX, Math.min(maxX, newX))
     newY = Math.max(minY, Math.min(maxY, newY))
